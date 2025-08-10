@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import AudioManager from './AudioManager';
 
 const GameState = {
     WALKING: 'walking',
@@ -63,6 +64,15 @@ interface Bullet {
 
 export default function AlienInvasionGame() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isMobile, setIsMobile] = useState(false);
+    const [audioInitialized, setAudioInitialized] = useState(false);
+    const audioManager = AudioManager.getInstance();
+    const touchControlsRef = useRef({
+        left: false,
+        right: false,
+        shoot: false,
+        super: false
+    });
     const gameRef = useRef({
         state: GameState.WALKING,
         stateTimer: 0,
@@ -109,14 +119,65 @@ export default function AlienInvasionGame() {
     const keysRef = useRef<Record<string, boolean>>({});
     
     useEffect(() => {
+        // Detect mobile device
+        const checkMobile = () => {
+            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                  ('ontouchstart' in window) || 
+                                  (window.innerWidth <= 768);
+            setIsMobile(isMobileDevice);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        
+        // Initialize audio on first user interaction
+        const initializeAudio = async () => {
+            if (!audioInitialized) {
+                await audioManager.initialize();
+                setAudioInitialized(true);
+            }
+        };
+        
+        const handleFirstInteraction = () => {
+            initializeAudio();
+            document.removeEventListener('click', handleFirstInteraction);
+            document.removeEventListener('touchstart', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
+        };
+        
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('touchstart', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        
         const canvas = canvasRef.current;
         if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         
-        canvas.width = 1000;
-        canvas.height = 700;
+        // Responsive canvas sizing
+        const resizeCanvas = () => {
+            const container = canvas.parentElement;
+            if (container) {
+                const maxWidth = Math.min(window.innerWidth - 32, 1000);
+                const maxHeight = Math.min(window.innerHeight - 200, 700);
+                const aspectRatio = 1000 / 700;
+                
+                if (maxWidth / aspectRatio <= maxHeight) {
+                    canvas.width = maxWidth;
+                    canvas.height = maxWidth / aspectRatio;
+                } else {
+                    canvas.width = maxHeight * aspectRatio;
+                    canvas.height = maxHeight;
+                }
+                
+                canvas.style.width = canvas.width + 'px';
+                canvas.style.height = canvas.height + 'px';
+            }
+        };
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         
         class AlienClass implements Alien {
             x: number;
@@ -199,6 +260,9 @@ export default function AlienInvasionGame() {
                 const dy = (player.y + player.height / 2) - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
+                // Play alien shoot sound
+                audioManager.playSound('alienShoot', 0.3);
+                
                 alienBulletsRef.current.push({
                     x: this.x + 20,
                     y: this.y,
@@ -279,6 +343,9 @@ export default function AlienInvasionGame() {
         }
         
         function executeSuperAttack() {
+            // Play mega blast sound
+            audioManager.playSound('megaBlast', 0.6);
+            
             aliensRef.current.forEach(alien => {
                 const damage = 15 + Math.random() * 10;
                 alien.health -= damage;
@@ -329,14 +396,17 @@ export default function AlienInvasionGame() {
                     game.stateTimer = 0;
                 }
             } else if (game.state === GameState.FIGHTING) {
-                if (keys.ArrowLeft && player.x > 0) {
+                // Handle movement (keyboard + touch)
+                const touchControls = touchControlsRef.current;
+                if ((keys.ArrowLeft || touchControls.left) && player.x > 0) {
                     player.x -= player.speed;
                 }
-                if (keys.ArrowRight && player.x < canvas.width - player.width) {
+                if ((keys.ArrowRight || touchControls.right) && player.x < canvas.width - player.width) {
                     player.x += player.speed;
                 }
                 
-                if (keys.Space && Date.now() - player.lastShot > player.fireRate) {
+                // Handle shooting (keyboard + touch)
+                if ((keys.Space || touchControls.shoot) && Date.now() - player.lastShot > player.fireRate) {
                     let nearestAlien: Alien | null = null;
                     let minDistance = Infinity;
                     
@@ -351,6 +421,9 @@ export default function AlienInvasionGame() {
                     });
                     
                     if (nearestAlien) {
+                        // Play player shoot sound
+                        audioManager.playSound('zap', 0.4);
+                        
                         bulletsRef.current.push(createBullet(
                             player.x + player.width / 2 - 2,
                             player.y,
@@ -365,7 +438,8 @@ export default function AlienInvasionGame() {
                     player.superAttackReady = true;
                 }
                 
-                if (keys.KeyM && player.superAttackReady && !player.superAttackCharging) {
+                // Handle super attack (keyboard + touch)
+                if ((keys.KeyM || touchControls.super) && player.superAttackReady && !player.superAttackCharging) {
                     player.superAttackCharging = true;
                     player.superAttackTimer = 0;
                 }
@@ -428,6 +502,8 @@ export default function AlienInvasionGame() {
                     alienBulletsRef.current.splice(i, 1);
                     
                     if (player.health <= 0) {
+                        // Play game over sound
+                        audioManager.playSound('gameOver', 0.7);
                         game.state = GameState.GAME_OVER;
                     }
                 }
@@ -937,19 +1013,108 @@ export default function AlienInvasionGame() {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
+            window.removeEventListener('resize', checkMobile);
+            window.removeEventListener('resize', resizeCanvas);
+            document.removeEventListener('click', handleFirstInteraction);
+            document.removeEventListener('touchstart', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
         };
     }, []);
     
+    const handleTouchStart = (control: keyof typeof touchControlsRef.current) => {
+        touchControlsRef.current[control] = true;
+    };
+    
+    const handleTouchEnd = (control: keyof typeof touchControlsRef.current) => {
+        touchControlsRef.current[control] = false;
+    };
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-            <h1 className="text-4xl font-bold text-white mb-4">Alien Invasion</h1>
-            <canvas
-                ref={canvasRef}
-                className="border-2 border-gray-600 rounded-lg shadow-2xl"
-            />
-            <div className="mt-4 text-white text-center">
-                <p className="mb-2">Controls:</p>
-                <p className="text-sm">Arrow Keys: Move | Space: Shoot | M: Super Attack | P: Pause | R: Restart</p>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-2 sm:p-4">
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4">Alien Invasion</h1>
+            
+            <div className="relative">
+                <canvas
+                    ref={canvasRef}
+                    className="border-2 border-gray-600 rounded-lg shadow-2xl max-w-full max-h-[60vh] sm:max-h-none"
+                    style={{ touchAction: 'none' }}
+                />
+                
+                {/* Audio status indicator */}
+                {!audioInitialized && (
+                    <div className="absolute top-2 left-2 bg-yellow-600 text-white text-xs px-2 py-1 rounded">
+                        Tap to enable audio
+                    </div>
+                )}
+            </div>
+            
+            {/* Mobile Controls */}
+            {isMobile && (
+                <div className="fixed bottom-4 left-0 right-0 flex justify-between items-end px-4 pointer-events-none">
+                    {/* Left side controls */}
+                    <div className="flex space-x-2 pointer-events-auto">
+                        <button
+                            onTouchStart={() => handleTouchStart('left')}
+                            onTouchEnd={() => handleTouchEnd('left')}
+                            onMouseDown={() => handleTouchStart('left')}
+                            onMouseUp={() => handleTouchEnd('left')}
+                            onMouseLeave={() => handleTouchEnd('left')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none"
+                            style={{ touchAction: 'manipulation' }}
+                        >
+                            ←
+                        </button>
+                        <button
+                            onTouchStart={() => handleTouchStart('right')}
+                            onTouchEnd={() => handleTouchEnd('right')}
+                            onMouseDown={() => handleTouchStart('right')}
+                            onMouseUp={() => handleTouchEnd('right')}
+                            onMouseLeave={() => handleTouchEnd('right')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none"
+                            style={{ touchAction: 'manipulation' }}
+                        >
+                            →
+                        </button>
+                    </div>
+                    
+                    {/* Right side controls */}
+                    <div className="flex flex-col space-y-2 pointer-events-auto">
+                        <button
+                            onTouchStart={() => handleTouchStart('super')}
+                            onTouchEnd={() => handleTouchEnd('super')}
+                            onMouseDown={() => handleTouchStart('super')}
+                            onMouseUp={() => handleTouchEnd('super')}
+                            onMouseLeave={() => handleTouchEnd('super')}
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none text-sm"
+                            style={{ touchAction: 'manipulation' }}
+                        >
+                            ⚡
+                        </button>
+                        <button
+                            onTouchStart={() => handleTouchStart('shoot')}
+                            onTouchEnd={() => handleTouchEnd('shoot')}
+                            onMouseDown={() => handleTouchStart('shoot')}
+                            onMouseUp={() => handleTouchEnd('shoot')}
+                            onMouseLeave={() => handleTouchEnd('shoot')}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none"
+                            style={{ touchAction: 'manipulation' }}
+                        >
+                            🔥
+                        </button>
+                    </div>
+                </div>
+            )}
+            
+            <div className="mt-2 sm:mt-4 text-white text-center px-2">
+                <p className="mb-1 sm:mb-2 text-sm sm:text-base">Controls:</p>
+                {isMobile ? (
+                    <p className="text-xs sm:text-sm">Use touch buttons below | P: Pause | R: Restart</p>
+                ) : (
+                    <p className="text-xs sm:text-sm">Arrow Keys: Move | Space: Shoot | M: Super Attack | P: Pause | R: Restart</p>
+                )}
+                {audioInitialized && (
+                    <p className="text-xs text-green-400 mt-1">Audio enabled ✓</p>
+                )}
             </div>
         </div>
     );
