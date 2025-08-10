@@ -721,8 +721,13 @@ export default function AlienInvasionGame() {
             const game = gameRef.current;
             const player = playerRef.current;
             
+            // Reset text properties to default for UI elements
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#FFF';
             ctx.font = '20px Arial';
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            
             ctx.fillText('Level: ' + game.level, 10, 30);
             ctx.fillText('Score: ' + game.score, 120, 30);
             
@@ -953,9 +958,10 @@ export default function AlienInvasionGame() {
                     ctx.lineTo(canvas.width - 20, canvas.height - 20 - cornerSize);
                     ctx.stroke();
                     
-                    // Reset shadow properties
+                    // Reset shadow properties and text alignment
                     ctx.shadowBlur = 0;
                     ctx.shadowColor = 'transparent';
+                    ctx.textAlign = 'left';
                     break;
                 case GameState.VICTORY:
                     // Retro 80s victory screen
@@ -1035,9 +1041,10 @@ export default function AlienInvasionGame() {
                     ctx.fillStyle = '#FFFFFF';
                     ctx.fillText(`STARTING IN ${countdown}...`, vCenterX, vCenterY + 100);
                     
-                    // Reset effects
+                    // Reset effects and text alignment
                     ctx.shadowBlur = 0;
                     ctx.shadowColor = 'transparent';
+                    ctx.textAlign = 'left';
                     break;
             }
         }
