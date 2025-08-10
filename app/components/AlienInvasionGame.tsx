@@ -155,25 +155,32 @@ export default function AlienInvasionGame() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         
-        // Responsive canvas sizing
+        // Set fixed canvas resolution but scale with CSS
+        canvas.width = 1000;
+        canvas.height = 700;
+        
+        // Responsive canvas display sizing
         const resizeCanvas = () => {
-            const container = canvas.parentElement;
-            if (container) {
-                const maxWidth = Math.min(window.innerWidth - 32, 1000);
-                const maxHeight = Math.min(window.innerHeight - 200, 700);
-                const aspectRatio = 1000 / 700;
-                
-                if (maxWidth / aspectRatio <= maxHeight) {
-                    canvas.width = maxWidth;
-                    canvas.height = maxWidth / aspectRatio;
-                } else {
-                    canvas.width = maxHeight * aspectRatio;
-                    canvas.height = maxHeight;
-                }
-                
-                canvas.style.width = canvas.width + 'px';
-                canvas.style.height = canvas.height + 'px';
+            const padding = 32; // 16px each side
+            const headerFooterSpace = isMobile ? 150 : 200; // Less space on mobile
+            
+            const maxWidth = Math.min(window.innerWidth - padding, 1000);
+            const maxHeight = Math.min(window.innerHeight - headerFooterSpace, 700);
+            const aspectRatio = 1000 / 700;
+            
+            let displayWidth, displayHeight;
+            
+            if (maxWidth / aspectRatio <= maxHeight) {
+                displayWidth = maxWidth;
+                displayHeight = maxWidth / aspectRatio;
+            } else {
+                displayWidth = maxHeight * aspectRatio;
+                displayHeight = maxHeight;
             }
+            
+            // Use CSS to scale the canvas while maintaining game coordinates
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
         };
         
         resizeCanvas();
@@ -1262,8 +1269,11 @@ export default function AlienInvasionGame() {
             <div className="relative">
                 <canvas
                     ref={canvasRef}
-                    className="border-2 border-gray-600 rounded-lg shadow-2xl max-w-full max-h-[60vh] sm:max-h-none"
-                    style={{ touchAction: 'none' }}
+                    className="border-2 border-gray-600 rounded-lg shadow-2xl block mx-auto"
+                    style={{ 
+                        touchAction: 'none',
+                        imageRendering: 'pixelated'
+                    }}
                 />
                 
                 {/* Audio status indicator */}
@@ -1276,7 +1286,7 @@ export default function AlienInvasionGame() {
             
             {/* Mobile Controls */}
             {isMobile && (
-                <div className="fixed bottom-4 left-0 right-0 flex justify-between items-end px-4 pointer-events-none">
+                <div className="fixed bottom-4 left-0 right-0 flex justify-between items-end px-4 pointer-events-none z-10">
                     {/* Left side controls */}
                     <div className="flex space-x-2 pointer-events-auto">
                         <button
