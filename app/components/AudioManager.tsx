@@ -20,7 +20,7 @@ class AudioManager {
     
     try {
       // Create AudioContext only when user interacts
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       
       // Load all audio files
       await this.loadAudio('zap', '/zap.mp3');

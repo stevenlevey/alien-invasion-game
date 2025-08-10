@@ -222,7 +222,6 @@ export default function AlienInvasionGame() {
             
             update() {
                 const game = gameRef.current;
-                const player = playerRef.current;
                 
                 if (game.state === GameState.SEEING_ALIENS) {
                     if (this.y < 550) {
@@ -232,8 +231,8 @@ export default function AlienInvasionGame() {
                     this.moveTimer++;
                     
                     if (this.moveTimer % 120 === 0) {
-                        this.targetX = 50 + Math.random() * (canvas.width - 100);
-                        this.targetY = 50 + Math.random() * (canvas.height - 150);
+                        this.targetX = 50 + Math.random() * (1000 - 100); // Use fixed canvas width
+                        this.targetY = 50 + Math.random() * (700 - 150);  // Use fixed canvas height
                     }
                     
                     const dx = this.targetX - this.x;
@@ -249,9 +248,9 @@ export default function AlienInvasionGame() {
                     this.y += this.vy;
                     
                     if (this.x < 20) this.x = 20;
-                    if (this.x > canvas.width - 60) this.x = canvas.width - 60;
+                    if (this.x > 1000 - 60) this.x = 1000 - 60; // Use fixed canvas width
                     if (this.y < 20) this.y = 20;
-                    if (this.y > canvas.height - 100) this.y = canvas.height - 100;
+                    if (this.y > 700 - 100) this.y = 700 - 100; // Use fixed canvas height
                     
                     if (game.state === GameState.FIGHTING) {
                         if (Date.now() - this.lastShot > this.fireRate) {
@@ -369,7 +368,7 @@ export default function AlienInvasionGame() {
             }
         }
         
-        function checkCollision(obj1: any, obj2: any) {
+        function checkCollision(obj1: { x: number; y: number; width: number; height: number }, obj2: { x: number; y: number; width: number; height: number }) {
             return obj1.x < obj2.x + obj2.width &&
                    obj1.x + obj1.width > obj2.x &&
                    obj1.y < obj2.y + obj2.height &&
@@ -384,7 +383,7 @@ export default function AlienInvasionGame() {
             
             if (game.state === GameState.WALKING) {
                 player.x += player.speed * player.direction;
-                if (player.x > canvas.width - 200) {
+                if (player.x > 1000 - 200) { // Use fixed canvas width
                     game.state = GameState.SEEING_ALIENS;
                     game.stateTimer = 0;
                     spawnAliens();
@@ -409,7 +408,7 @@ export default function AlienInvasionGame() {
                 if ((keys.ArrowLeft || touchControls.left) && player.x > 0) {
                     player.x -= player.speed;
                 }
-                if ((keys.ArrowRight || touchControls.right) && player.x < canvas.width - player.width) {
+                if ((keys.ArrowRight || touchControls.right) && player.x < 1000 - player.width) { // Use fixed canvas width
                     player.x += player.speed;
                 }
                 
@@ -435,8 +434,8 @@ export default function AlienInvasionGame() {
                         bulletsRef.current.push(createBullet(
                             player.x + player.width / 2 - 2,
                             player.y,
-                            nearestAlien.x + 20,
-                            nearestAlien.y + 15
+                            (nearestAlien as Alien).x + 20,
+                            (nearestAlien as Alien).y + 15
                         ));
                         player.lastShot = Date.now();
                     }
@@ -474,8 +473,8 @@ export default function AlienInvasionGame() {
                 bullet.x += bullet.vx;
                 bullet.y += bullet.vy;
                 
-                if (bullet.y < 0 || bullet.y > canvas.height || 
-                    bullet.x < 0 || bullet.x > canvas.width) {
+                if (bullet.y < 0 || bullet.y > 700 || // Use fixed canvas height
+                    bullet.x < 0 || bullet.x > 1000) { // Use fixed canvas width
                     bulletsRef.current.splice(i, 1);
                     continue;
                 }
@@ -499,8 +498,8 @@ export default function AlienInvasionGame() {
                 bullet.x += bullet.vx;
                 bullet.y += bullet.vy;
                 
-                if (bullet.y < 0 || bullet.y > canvas.height || 
-                    bullet.x < 0 || bullet.x > canvas.width) {
+                if (bullet.y < 0 || bullet.y > 700 || // Use fixed canvas height
+                    bullet.x < 0 || bullet.x > 1000) { // Use fixed canvas width
                     alienBulletsRef.current.splice(i, 1);
                     continue;
                 }
@@ -780,35 +779,35 @@ export default function AlienInvasionGame() {
             
             switch(game.state) {
                 case GameState.WALKING:
-                    ctx.fillText('Walking peacefully...', canvas.width / 2 - 80, 50);
+                    ctx.fillText('Walking peacefully...', 500 - 80, 50);
                     break;
                 case GameState.SEEING_ALIENS:
                     ctx.fillStyle = '#FF0000';
                     ctx.font = '24px Arial';
-                    ctx.fillText('ALIEN SHIPS!!!', canvas.width / 2 - 80, 100);
+                    ctx.fillText('ALIEN SHIPS!!!', 500 - 80, 100);
                     break;
                 case GameState.RUNNING_HOME:
-                    ctx.fillText('Running home to prepare!', canvas.width / 2 - 100, 50);
+                    ctx.fillText('Running home to prepare!', 500 - 100, 50);
                     break;
                 case GameState.PREPARING:
-                    ctx.fillText('Getting ready to fight...', canvas.width / 2 - 100, 50);
+                    ctx.fillText('Getting ready to fight...', 500 - 100, 50);
                     break;
                 case GameState.CONFRONTING:
                     if (game.confrontationStarted) {
                         ctx.fillStyle = '#FFD700';
                         ctx.font = '20px Arial';
-                        ctx.fillText('"Hey, come here, I\'m going to fight you!"', canvas.width / 2 - 180, 100);
+                        ctx.fillText('"Hey, come here, I\'m going to fight you!"', 500 - 180, 100);
                     }
                     break;
                 case GameState.GAME_OVER:
                     // Retro 80s arcade game over screen
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
+                    const centerX = 500;
+                    const centerY = 350;
                     const time = Date.now() / 1000;
                     
                     // Dark overlay with grid pattern
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillRect(0, 0, 1000, 700);
                     
                     // Retro grid background
                     ctx.strokeStyle = '#FF00FF';
@@ -816,18 +815,18 @@ export default function AlienInvasionGame() {
                     ctx.globalAlpha = 0.3;
                     
                     // Horizontal grid lines
-                    for (let y = 0; y < canvas.height; y += 30) {
+                    for (let y = 0; y < 700; y += 30) {
                         ctx.beginPath();
                         ctx.moveTo(0, y);
-                        ctx.lineTo(canvas.width, y);
+                        ctx.lineTo(1000, y);
                         ctx.stroke();
                     }
                     
                     // Vertical grid lines
-                    for (let x = 0; x < canvas.width; x += 40) {
+                    for (let x = 0; x < 1000; x += 40) {
                         ctx.beginPath();
                         ctx.moveTo(x, 0);
-                        ctx.lineTo(x, canvas.height);
+                        ctx.lineTo(x, 700);
                         ctx.stroke();
                     }
                     
@@ -922,7 +921,7 @@ export default function AlienInvasionGame() {
                     ctx.lineWidth = 4;
                     ctx.shadowColor = '#FF00FF';
                     ctx.shadowBlur = 15;
-                    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+                    ctx.strokeRect(20, 20, 1000 - 40, 700 - 40);
                     
                     // Corner decorations
                     const cornerSize = 30;
@@ -940,23 +939,23 @@ export default function AlienInvasionGame() {
                     
                     // Top-right corner
                     ctx.beginPath();
-                    ctx.moveTo(canvas.width - 20 - cornerSize, 20);
-                    ctx.lineTo(canvas.width - 20, 20);
-                    ctx.lineTo(canvas.width - 20, 20 + cornerSize);
+                    ctx.moveTo(1000 - 20 - cornerSize, 20);
+                    ctx.lineTo(1000 - 20, 20);
+                    ctx.lineTo(1000 - 20, 20 + cornerSize);
                     ctx.stroke();
                     
                     // Bottom-left corner
                     ctx.beginPath();
-                    ctx.moveTo(20, canvas.height - 20 - cornerSize);
-                    ctx.lineTo(20, canvas.height - 20);
-                    ctx.lineTo(20 + cornerSize, canvas.height - 20);
+                    ctx.moveTo(20, 700 - 20 - cornerSize);
+                    ctx.lineTo(20, 700 - 20);
+                    ctx.lineTo(20 + cornerSize, 700 - 20);
                     ctx.stroke();
                     
                     // Bottom-right corner
                     ctx.beginPath();
-                    ctx.moveTo(canvas.width - 20 - cornerSize, canvas.height - 20);
-                    ctx.lineTo(canvas.width - 20, canvas.height - 20);
-                    ctx.lineTo(canvas.width - 20, canvas.height - 20 - cornerSize);
+                    ctx.moveTo(1000 - 20 - cornerSize, 700 - 20);
+                    ctx.lineTo(1000 - 20, 700 - 20);
+                    ctx.lineTo(1000 - 20, 700 - 20 - cornerSize);
                     ctx.stroke();
                     
                     // Reset shadow properties and text alignment
@@ -966,13 +965,13 @@ export default function AlienInvasionGame() {
                     break;
                 case GameState.VICTORY:
                     // Retro 80s victory screen
-                    const vCenterX = canvas.width / 2;
-                    const vCenterY = canvas.height / 2;
+                    const vCenterX = 500;
+                    const vCenterY = 350;
                     const vTime = Date.now() / 1000;
                     
                     // Victory glow background
                     ctx.fillStyle = 'rgba(0, 50, 0, 0.8)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillRect(0, 0, 1000, 700);
                     
                     // Animated success grid
                     ctx.strokeStyle = '#00FF00';
@@ -1051,15 +1050,17 @@ export default function AlienInvasionGame() {
         }
         
         function draw() {
+            if (!ctx) return;
+            
             const game = gameRef.current;
             const player = playerRef.current;
             
             ctx.fillStyle = '#000033';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, 1000, 700);
             
             ctx.fillStyle = '#FFFFFF';
             for (let i = 0; i < 50; i++) {
-                const x = (i * 73) % canvas.width;
+                const x = (i * 73) % 1000;
                 const y = (i * 37) % 400;
                 const size = (i % 3) + 1;
                 ctx.fillRect(x, y, size, size);
@@ -1112,16 +1113,16 @@ export default function AlienInvasionGame() {
                 });
                 
                 ctx.fillStyle = `rgba(255, 255, 255, ${0.5 - (player.superAttackTimer - 55) * 0.05})`;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, 1000, 700);
             }
             
             const groundY = 600;
             
             ctx.fillStyle = '#1F4F2F';
-            ctx.fillRect(0, groundY, canvas.width, 100);
+            ctx.fillRect(0, groundY, 1000, 100);
             
             for (let i = 0; i < 15; i++) {
-                const centerX = (i * 137) % canvas.width;
+                const centerX = (i * 137) % 1000;
                 const centerY = groundY + 30 + (i * 47) % 50;
                 const maxRadius = 25 + (i * 13) % 20;
                 
@@ -1142,7 +1143,7 @@ export default function AlienInvasionGame() {
             }
             
             for (let i = 0; i < 20; i++) {
-                const x = (i * 89) % canvas.width;
+                const x = (i * 89) % 1000;
                 const y = groundY + 20 + (i * 31) % 60;
                 const radius = 15 + (i * 11) % 15;
                 
@@ -1178,14 +1179,14 @@ export default function AlienInvasionGame() {
             
             if (game.paused) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, 1000, 700);
                 
                 ctx.fillStyle = '#FFD700';
                 ctx.font = '48px Arial';
-                ctx.fillText('PAUSED', canvas.width / 2 - 90, canvas.height / 2);
+                ctx.fillText('PAUSED', 500 - 90, 350);
                 ctx.font = '20px Arial';
                 ctx.fillStyle = '#FFF';
-                ctx.fillText('Press P to resume', canvas.width / 2 - 80, canvas.height / 2 + 40);
+                ctx.fillText('Press P to resume', 500 - 80, 350 + 40);
             }
         }
         
@@ -1260,7 +1261,7 @@ export default function AlienInvasionGame() {
             document.removeEventListener('touchstart', handleFirstInteraction);
             document.removeEventListener('keydown', handleFirstInteraction);
         };
-    }, []);
+    }, [audioInitialized, audioManager, isMobile]);
     
     const handleTouchStart = (control: keyof typeof touchControlsRef.current) => {
         touchControlsRef.current[control] = true;

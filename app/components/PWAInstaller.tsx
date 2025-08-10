@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 export default function PWAInstaller() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
@@ -19,7 +20,8 @@ export default function PWAInstaller() {
     }
 
     // Handle PWA install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleBeforeInstallPrompt = (e: any) => {
       console.log('PWA install prompt available');
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
