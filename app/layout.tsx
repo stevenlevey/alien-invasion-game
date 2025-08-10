@@ -19,6 +19,17 @@ export const metadata: Metadata = {
   authors: [{ name: "Alien Invasion Game" }],
   creator: "Alien Invasion Game",
   robots: "index, follow",
+  manifest: "/manifest.json",
+  themeColor: "#1f2937",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Alien Invasion",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: "Alien Invasion Game",
     description: "Fight alien invaders with lightning powers in this exciting HTML5 Canvas game!",
@@ -29,6 +40,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Alien Invasion Game",
     description: "Fight alien invaders with lightning powers in this exciting HTML5 Canvas game!",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icon-512x512.svg", sizes: "512x512", type: "image/svg+xml" }
+    ],
+    apple: [
+      { url: "/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" }
+    ]
   },
 };
 

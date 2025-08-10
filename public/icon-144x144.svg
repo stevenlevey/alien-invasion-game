@@ -1,0 +1,21 @@
+
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF0080;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00FFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFFF00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="144" height="144" fill="url(#grad)" rx="14.4"/>
+  <!-- Game elements -->
+  <circle cx="43.199999999999996" cy="43.199999999999996" r="11.52" fill="#FFFFFF"/>
+  <circle cx="100.8" cy="43.199999999999996" r="11.52" fill="#FFFFFF"/>
+  <circle cx="72" cy="43.199999999999996" r="11.52" fill="#FFFFFF"/>
+  <!-- Player character -->
+  <circle cx="72" cy="100.8" r="17.28" fill="#4169E1"/>
+  <circle cx="72" cy="93.60000000000001" r="8.64" fill="#FFE4B5"/>
+  <!-- Lightning bolt -->
+  <path d="M 64.8 64.8 L 79.2 57.6 L 69.12 74.88 L 83.52 67.67999999999999 L 60.48 86.39999999999999 L 74.88 79.2 L 64.8 64.8" fill="#00FFFF" stroke="#FFFFFF" stroke-width="1"/>
+</svg>

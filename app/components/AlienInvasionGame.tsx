@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import AudioManager from './AudioManager';
+import PWAInstaller from './PWAInstaller';
 
 const GameState = {
     WALKING: 'walking',
@@ -1271,6 +1272,7 @@ export default function AlienInvasionGame() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-2 sm:p-4">
+            <PWAInstaller />
             <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4">Alien Invasion</h1>
             
             <div className="relative">
