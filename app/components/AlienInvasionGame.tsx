@@ -788,23 +788,249 @@ export default function AlienInvasionGame() {
                     }
                     break;
                 case GameState.GAME_OVER:
-                    ctx.fillStyle = '#FF0000';
-                    ctx.font = '48px Arial';
-                    ctx.fillText('GAME OVER', canvas.width / 2 - 120, canvas.height / 2);
-                    ctx.font = '20px Arial';
-                    ctx.fillText('Press R to restart', canvas.width / 2 - 80, canvas.height / 2 + 40);
+                    // Retro 80s arcade game over screen
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    const time = Date.now() / 1000;
+                    
+                    // Dark overlay with grid pattern
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Retro grid background
+                    ctx.strokeStyle = '#FF00FF';
+                    ctx.lineWidth = 1;
+                    ctx.globalAlpha = 0.3;
+                    
+                    // Horizontal grid lines
+                    for (let y = 0; y < canvas.height; y += 30) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(canvas.width, y);
+                        ctx.stroke();
+                    }
+                    
+                    // Vertical grid lines
+                    for (let x = 0; x < canvas.width; x += 40) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, canvas.height);
+                        ctx.stroke();
+                    }
+                    
+                    ctx.globalAlpha = 1;
+                    
+                    // Main "GAME OVER" title with neon glow
+                    ctx.save();
+                    
+                    // Outer glow
+                    ctx.shadowColor = '#FF0080';
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = '#FF0080';
+                    ctx.font = 'bold 60px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('GAME OVER', centerX, centerY - 60);
+                    
+                    // Inner glow
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = '#FF40A0';
+                    ctx.fillText('GAME OVER', centerX, centerY - 60);
+                    
+                    // Core text
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText('GAME OVER', centerX, centerY - 60);
+                    
+                    ctx.restore();
+                    
+                    // Animated "INSERT COIN TO CONTINUE" text
+                    const blinkSpeed = Math.sin(time * 4) > 0 ? 1 : 0.3;
+                    ctx.globalAlpha = blinkSpeed;
+                    
+                    ctx.shadowColor = '#00FFFF';
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = '#00FFFF';
+                    ctx.font = 'bold 24px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('INSERT COIN TO CONTINUE', centerX, centerY + 20);
+                    
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#80FFFF';
+                    ctx.fillText('INSERT COIN TO CONTINUE', centerX, centerY + 20);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText('INSERT COIN TO CONTINUE', centerX, centerY + 20);
+                    
+                    ctx.globalAlpha = 1;
+                    
+                    // Score display with retro styling
+                    ctx.shadowColor = '#FFFF00';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = '#FFFF00';
+                    ctx.font = 'bold 28px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`FINAL SCORE: ${game.score}`, centerX, centerY + 80);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`FINAL SCORE: ${game.score}`, centerX, centerY + 80);
+                    
+                    // High score display (placeholder for now)
+                    const storedHighScore = localStorage.getItem('alienInvasionHighScore') || '0';
+                    const highScore = Math.max(parseInt(storedHighScore), game.score);
+                    if (game.score >= parseInt(storedHighScore)) {
+                        localStorage.setItem('alienInvasionHighScore', game.score.toString());
+                    }
+                    
+                    ctx.shadowColor = '#FF8000';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#FF8000';
+                    ctx.font = 'bold 20px monospace';
+                    ctx.fillText(`HIGH SCORE: ${highScore}`, centerX, centerY + 120);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`HIGH SCORE: ${highScore}`, centerX, centerY + 120);
+                    
+                    // Controls instruction
+                    ctx.shadowColor = '#00FF00';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#00FF00';
+                    ctx.font = 'bold 18px monospace';
+                    ctx.fillText('PRESS R TO RESTART', centerX, centerY + 160);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText('PRESS R TO RESTART', centerX, centerY + 160);
+                    
+                    // Retro border frame
+                    ctx.strokeStyle = '#FF00FF';
+                    ctx.lineWidth = 4;
+                    ctx.shadowColor = '#FF00FF';
+                    ctx.shadowBlur = 15;
+                    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+                    
+                    // Corner decorations
+                    const cornerSize = 30;
+                    ctx.strokeStyle = '#00FFFF';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#00FFFF';
+                    ctx.shadowBlur = 10;
+                    
+                    // Top-left corner
+                    ctx.beginPath();
+                    ctx.moveTo(20, 20 + cornerSize);
+                    ctx.lineTo(20, 20);
+                    ctx.lineTo(20 + cornerSize, 20);
+                    ctx.stroke();
+                    
+                    // Top-right corner
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - 20 - cornerSize, 20);
+                    ctx.lineTo(canvas.width - 20, 20);
+                    ctx.lineTo(canvas.width - 20, 20 + cornerSize);
+                    ctx.stroke();
+                    
+                    // Bottom-left corner
+                    ctx.beginPath();
+                    ctx.moveTo(20, canvas.height - 20 - cornerSize);
+                    ctx.lineTo(20, canvas.height - 20);
+                    ctx.lineTo(20 + cornerSize, canvas.height - 20);
+                    ctx.stroke();
+                    
+                    // Bottom-right corner
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - 20 - cornerSize, canvas.height - 20);
+                    ctx.lineTo(canvas.width - 20, canvas.height - 20);
+                    ctx.lineTo(canvas.width - 20, canvas.height - 20 - cornerSize);
+                    ctx.stroke();
+                    
+                    // Reset shadow properties
+                    ctx.shadowBlur = 0;
+                    ctx.shadowColor = 'transparent';
                     break;
                 case GameState.VICTORY:
+                    // Retro 80s victory screen
+                    const vCenterX = canvas.width / 2;
+                    const vCenterY = canvas.height / 2;
+                    const vTime = Date.now() / 1000;
+                    
+                    // Victory glow background
+                    ctx.fillStyle = 'rgba(0, 50, 0, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Animated success grid
+                    ctx.strokeStyle = '#00FF00';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.3 + Math.sin(vTime * 2) * 0.2;
+                    
+                    for (let i = 0; i < 5; i++) {
+                        ctx.strokeRect(
+                            vCenterX - 200 + i * 10,
+                            vCenterY - 150 + i * 10,
+                            400 - i * 20,
+                            300 - i * 20
+                        );
+                    }
+                    ctx.globalAlpha = 1;
+                    
+                    // "LEVEL COMPLETE" with neon effect
+                    ctx.shadowColor = '#00FF00';
+                    ctx.shadowBlur = 20;
                     ctx.fillStyle = '#00FF00';
-                    ctx.font = '48px Arial';
-                    ctx.fillText('LEVEL ' + game.level + ' COMPLETE!', canvas.width / 2 - 180, canvas.height / 2 - 40);
-                    ctx.font = '24px Arial';
-                    ctx.fillText('Score: ' + game.score, canvas.width / 2 - 60, canvas.height / 2);
+                    ctx.font = 'bold 48px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`LEVEL ${game.level} COMPLETE!`, vCenterX, vCenterY - 80);
+                    
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = '#80FF80';
+                    ctx.fillText(`LEVEL ${game.level} COMPLETE!`, vCenterX, vCenterY - 80);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`LEVEL ${game.level} COMPLETE!`, vCenterX, vCenterY - 80);
+                    
+                    // Score with golden glow
+                    ctx.shadowColor = '#FFD700';
+                    ctx.shadowBlur = 15;
                     ctx.fillStyle = '#FFD700';
-                    ctx.fillText('Next Level: ' + (game.level + 1), canvas.width / 2 - 70, canvas.height / 2 + 40);
-                    ctx.fillStyle = '#FFF';
-                    ctx.font = '18px Arial';
-                    ctx.fillText('Starting in ' + Math.ceil((180 - game.stateTimer) / 60) + '...', canvas.width / 2 - 60, canvas.height / 2 + 80);
+                    ctx.font = 'bold 32px monospace';
+                    ctx.fillText(`SCORE: ${game.score}`, vCenterX, vCenterY - 20);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`SCORE: ${game.score}`, vCenterX, vCenterY - 20);
+                    
+                    // Next level with pulsing effect
+                    const pulse = 0.8 + Math.sin(vTime * 3) * 0.3;
+                    ctx.globalAlpha = pulse;
+                    ctx.shadowColor = '#FF8000';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#FF8000';
+                    ctx.font = 'bold 28px monospace';
+                    ctx.fillText(`NEXT: LEVEL ${game.level + 1}`, vCenterX, vCenterY + 40);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`NEXT: LEVEL ${game.level + 1}`, vCenterX, vCenterY + 40);
+                    ctx.globalAlpha = 1;
+                    
+                    // Countdown timer
+                    const countdown = Math.ceil((180 - game.stateTimer) / 60);
+                    ctx.shadowColor = '#00FFFF';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#00FFFF';
+                    ctx.font = 'bold 24px monospace';
+                    ctx.fillText(`STARTING IN ${countdown}...`, vCenterX, vCenterY + 100);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(`STARTING IN ${countdown}...`, vCenterX, vCenterY + 100);
+                    
+                    // Reset effects
+                    ctx.shadowBlur = 0;
+                    ctx.shadowColor = 'transparent';
                     break;
             }
         }
