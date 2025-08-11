@@ -74,6 +74,10 @@ export default function AlienInvasionGame() {
         shoot: false,
         super: false
     });
+    
+    // Mobile performance optimization
+    const speedMultiplier = useRef(1);
+    const lastFrameTime = useRef(Date.now());
     const gameRef = useRef({
         state: GameState.WALKING,
         stateTimer: 0,
@@ -120,12 +124,19 @@ export default function AlienInvasionGame() {
     const keysRef = useRef<Record<string, boolean>>({});
     
     useEffect(() => {
-        // Detect mobile device
+        // Detect mobile device and adjust performance
         const checkMobile = () => {
             const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                                   ('ontouchstart' in window) || 
                                   (window.innerWidth <= 768);
             setIsMobile(isMobileDevice);
+            
+            // Increase speed multiplier for mobile devices to compensate for performance
+            if (isMobileDevice) {
+                speedMultiplier.current = 1.3; // 30% speed boost for mobile
+            } else {
+                speedMultiplier.current = 1.0;
+            }
         };
         
         checkMobile();
@@ -225,7 +236,7 @@ export default function AlienInvasionGame() {
                 
                 if (game.state === GameState.SEEING_ALIENS) {
                     if (this.y < 550) {
-                        this.y += 2;
+                        this.y += 2 * speedMultiplier.current;
                     }
                 } else if (game.state === GameState.CONFRONTING || game.state === GameState.FIGHTING) {
                     this.moveTimer++;
@@ -240,8 +251,8 @@ export default function AlienInvasionGame() {
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     
                     if (dist > 5) {
-                        this.vx = (dx / dist) * this.speed + Math.sin(this.moveTimer * 0.05) * 0.5;
-                        this.vy = (dy / dist) * this.speed + Math.cos(this.moveTimer * 0.05) * 0.5;
+                        this.vx = ((dx / dist) * this.speed + Math.sin(this.moveTimer * 0.05) * 0.5) * speedMultiplier.current;
+                        this.vy = ((dy / dist) * this.speed + Math.cos(this.moveTimer * 0.05) * 0.5) * speedMultiplier.current;
                     }
                     
                     this.x += this.vx;
@@ -273,8 +284,8 @@ export default function AlienInvasionGame() {
                 alienBulletsRef.current.push({
                     x: this.x + 20,
                     y: this.y,
-                    vx: (dx / distance) * 3,
-                    vy: (dy / distance) * 3,
+                    vx: (dx / distance) * 3 * speedMultiplier.current,
+                    vy: (dy / distance) * 3 * speedMultiplier.current,
                     width: 4,
                     height: 8,
                     color: '#FF0000',
@@ -344,8 +355,8 @@ export default function AlienInvasionGame() {
                 height: 8,
                 color: '#FFFF00',
                 isLightning: gameRef.current.prepared,
-                vx: (dx / distance) * 7,
-                vy: (dy / distance) * 7
+                vx: (dx / distance) * 7 * speedMultiplier.current,
+                vy: (dy / distance) * 7 * speedMultiplier.current
             };
         }
         
@@ -382,7 +393,7 @@ export default function AlienInvasionGame() {
             const keys = keysRef.current;
             
             if (game.state === GameState.WALKING) {
-                player.x += player.speed * player.direction;
+                player.x += player.speed * player.direction * speedMultiplier.current;
                 if (player.x > 1000 - 200) { // Use fixed canvas width
                     game.state = GameState.SEEING_ALIENS;
                     game.stateTimer = 0;
@@ -390,14 +401,14 @@ export default function AlienInvasionGame() {
                 }
             } else if (game.state === GameState.RUNNING_HOME) {
                 if (player.x > home.x + home.width) {
-                    player.x -= player.speed * 2;
+                    player.x -= player.speed * 2 * speedMultiplier.current;
                 } else {
                     game.state = GameState.PREPARING;
                     game.stateTimer = 0;
                 }
             } else if (game.state === GameState.CONFRONTING) {
                 if (player.x < 300) {
-                    player.x += player.speed;
+                    player.x += player.speed * speedMultiplier.current;
                 } else if (!game.confrontationStarted) {
                     game.confrontationStarted = true;
                     game.stateTimer = 0;
@@ -406,10 +417,10 @@ export default function AlienInvasionGame() {
                 // Handle movement (keyboard + touch)
                 const touchControls = touchControlsRef.current;
                 if ((keys.ArrowLeft || touchControls.left) && player.x > 0) {
-                    player.x -= player.speed;
+                    player.x -= player.speed * speedMultiplier.current;
                 }
                 if ((keys.ArrowRight || touchControls.right) && player.x < 1000 - player.width) { // Use fixed canvas width
-                    player.x += player.speed;
+                    player.x += player.speed * speedMultiplier.current;
                 }
                 
                 // Handle shooting (keyboard + touch)
@@ -1216,6 +1227,23 @@ export default function AlienInvasionGame() {
         }
         
         function gameLoop() {
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastFrameTime.current;
+            lastFrameTime.current = currentTime;
+            
+            // Adjust speed multiplier based on frame rate
+            const targetFrameTime = 16.67; // 60 FPS
+            const frameRateMultiplier = Math.min(deltaTime / targetFrameTime, 2.0); // Cap at 2x
+            
+            // Apply frame rate compensation
+            const currentSpeedMultiplier = isMobile 
+                ? speedMultiplier.current * Math.max(1.0, frameRateMultiplier)
+                : speedMultiplier.current * frameRateMultiplier;
+            
+            // Temporarily update speed multiplier for this frame
+            const originalSpeedMultiplier = speedMultiplier.current;
+            speedMultiplier.current = currentSpeedMultiplier;
+            
             const game = gameRef.current;
             
             if (!game.paused && game.state !== GameState.GAME_OVER) {
@@ -1228,6 +1256,10 @@ export default function AlienInvasionGame() {
             }
             
             draw();
+            
+            // Restore original speed multiplier
+            speedMultiplier.current = originalSpeedMultiplier;
+            
             requestAnimationFrame(gameLoop);
         }
         
