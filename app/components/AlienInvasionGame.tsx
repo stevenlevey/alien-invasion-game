@@ -67,7 +67,7 @@ export default function AlienInvasionGame() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [audioInitialized, setAudioInitialized] = useState(false);
-    const [showRestart, setShowRestart] = useState(false);
+    const [gameState, setGameState] = useState(GameState.WALKING);
     const audioManager = AudioManager.getInstance();
     const touchControlsRef = useRef({
         left: false,
@@ -524,7 +524,7 @@ export default function AlienInvasionGame() {
                         // Play game over sound
                         audioManager.playSound('gameOver', 0.7);
                         game.state = GameState.GAME_OVER;
-                        setShowRestart(true);
+                        setGameState(GameState.GAME_OVER);
                     }
                 }
             }
@@ -564,7 +564,7 @@ export default function AlienInvasionGame() {
                     if (aliensRef.current.length === 0) {
                         game.state = GameState.VICTORY;
                         game.stateTimer = 0;
-                        setShowRestart(true);
+                        setGameState(GameState.VICTORY);
                     }
                     break;
                     
@@ -1298,7 +1298,7 @@ export default function AlienInvasionGame() {
         player.direction = 1;
         player.health = player.maxHealth;
         
-        setShowRestart(false);
+        setGameState(GameState.WALKING);
         player.color = '#4169E1';
         player.damage = 10;
         player.fireRate = 500;
@@ -1368,7 +1368,7 @@ export default function AlienInvasionGame() {
                     
                     {/* Right side controls */}
                     <div className="flex flex-col space-y-2 pointer-events-auto">
-                        {showRestart && (
+                        {(gameState === GameState.GAME_OVER || gameState === GameState.VICTORY) && (
                             <button
                                 onClick={resetGame}
                                 className="bg-green-600 hover:bg-green-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none"
