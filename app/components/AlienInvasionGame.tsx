@@ -67,6 +67,7 @@ export default function AlienInvasionGame() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [audioInitialized, setAudioInitialized] = useState(false);
+    const [showRestart, setShowRestart] = useState(false);
     const audioManager = AudioManager.getInstance();
     const touchControlsRef = useRef({
         left: false,
@@ -523,6 +524,7 @@ export default function AlienInvasionGame() {
                         // Play game over sound
                         audioManager.playSound('gameOver', 0.7);
                         game.state = GameState.GAME_OVER;
+                        setShowRestart(true);
                     }
                 }
             }
@@ -562,6 +564,7 @@ export default function AlienInvasionGame() {
                     if (aliensRef.current.length === 0) {
                         game.state = GameState.VICTORY;
                         game.stateTimer = 0;
+                        setShowRestart(true);
                     }
                     break;
                     
@@ -1201,31 +1204,6 @@ export default function AlienInvasionGame() {
             }
         }
         
-        function resetGame() {
-            const game = gameRef.current;
-            const player = playerRef.current;
-            
-            game.state = GameState.WALKING;
-            game.stateTimer = 0;
-            game.score = 0;
-            game.aliensSeen = false;
-            game.prepared = false;
-            game.confrontationStarted = false;
-            game.level = 1;
-            
-            player.x = 100;
-            player.y = 550;
-            player.direction = 1;
-            player.health = player.maxHealth;
-            player.color = '#4169E1';
-            player.damage = 10;
-            player.fireRate = 500;
-            
-            aliensRef.current.length = 0;
-            bulletsRef.current.length = 0;
-            alienBulletsRef.current.length = 0;
-        }
-        
         function gameLoop() {
             const currentTime = Date.now();
             const deltaTime = currentTime - lastFrameTime.current;
@@ -1302,6 +1280,39 @@ export default function AlienInvasionGame() {
     const handleTouchEnd = (control: keyof typeof touchControlsRef.current) => {
         touchControlsRef.current[control] = false;
     };
+    
+    const resetGame = () => {
+        const game = gameRef.current;
+        const player = playerRef.current;
+        
+        game.state = GameState.WALKING;
+        game.stateTimer = 0;
+        game.score = 0;
+        game.aliensSeen = false;
+        game.prepared = false;
+        game.confrontationStarted = false;
+        game.level = 1;
+        
+        player.x = 100;
+        player.y = 550;
+        player.direction = 1;
+        player.health = player.maxHealth;
+        
+        setShowRestart(false);
+        player.color = '#4169E1';
+        player.damage = 10;
+        player.fireRate = 500;
+        
+        player.superAttackReady = false;
+        player.superAttackCharging = false;
+        player.superAttackTimer = 0;
+        player.lastSuperAttack = 0;
+        player.superCooldown = 0;
+        
+        aliensRef.current = [];
+        alienBulletsRef.current = [];
+        bulletsRef.current = [];
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-2 sm:p-4">
@@ -1357,6 +1368,15 @@ export default function AlienInvasionGame() {
                     
                     {/* Right side controls */}
                     <div className="flex flex-col space-y-2 pointer-events-auto">
+                        {showRestart && (
+                            <button
+                                onClick={resetGame}
+                                className="bg-green-600 hover:bg-green-700 text-white font-bold w-16 h-16 rounded-full shadow-lg active:scale-95 transition-transform select-none"
+                                style={{ touchAction: 'manipulation' }}
+                            >
+                                🔄
+                            </button>
+                        )}
                         <button
                             onTouchStart={() => handleTouchStart('super')}
                             onTouchEnd={() => handleTouchEnd('super')}
